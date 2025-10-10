@@ -13,12 +13,46 @@ class MSQueue<E> : Queue<E> {
     }
 
     override fun enqueue(element: E) {
-        TODO("Implement me!")
+        val newTail = Node(element)
+        while (true){
+            val curTail = tail.get()
+            val nextTail = curTail.next.get()
+            if(curTail == tail.get()){
+                if(nextTail == null){
+                    if(curTail.next.compareAndSet(null, newTail)){
+                        tail.compareAndSet(curTail, newTail)
+                        return
+                    }
+                }else{
+                    tail.compareAndSet(curTail, nextTail)
+                }
+            }
+        }
     }
 
     override fun dequeue(): E? {
-        TODO("Implement me!")
+        while (true) {
+            val curHead = head.get()
+            val curTail = tail.get()
+            val next = curHead.next.get()
+
+            if (curHead == head.get()) {
+                if (next == null) {
+                    return null
+                }
+                if (curHead == curTail) {
+                    tail.compareAndSet(curTail, next)
+                } else {
+                    val value = next.element
+                    if (head.compareAndSet(curHead, next)) {
+                        next.element = null
+                        return value
+                    }
+                }
+            }
+        }
     }
+
 
     // FOR TEST PURPOSE, DO NOT CHANGE IT.
     override fun validate() {
